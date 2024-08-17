@@ -1,34 +1,49 @@
-module.exports = (sequelize, Sequelize) => {
-  const Request = sequelize.define('Request', {
+const { EntitySchema } = require('typeorm');
+
+module.exports = new EntitySchema({
+  name: 'Request',
+  tableName: 'Requests',
+  columns: {
     id: {
-      type: Sequelize.INTEGER,
-      primaryKey: true,
-      autoIncrement: true,
+      type: 'int',
+      primary: true,
+      generated: true,
     },
     code: {
-      type: Sequelize.STRING(50),
-      allowNull: false,
+      type: 'varchar',
+      nullable: false,
     },
     description: {
-      type: Sequelize.STRING(50),
-      allowNull: false,
+      type: 'varchar',
+      nullable: false,
     },
     summary: {
-      type: Sequelize.STRING(50),
-      allowNull: false,
+      type: 'varchar',
+      nullable: false,
     },
     employee_id: {
-      type: Sequelize.INTEGER,
-      references: {
-        model: 'employees',
-        key: 'id',
-      },
-      allowNull: false,
+      type: 'int',
+      nullable: false,
     },
-  }, {
-    tableName: 'requests',
-    timestamps: false,
-  });
-
-  return Request;
-};
+    isActive: {
+      type: 'boolean',
+      default: true,
+    },
+    createdAt: {
+      type: 'timestamp',
+      createDate: true,
+    },
+    updatedAt: {
+      type: 'timestamp',
+      updateDate: true,
+    },
+  },
+  relations: {
+    employee: {
+      target: 'Employee',
+      type: 'many-to-one',
+      joinColumn: { name: 'employee_id' },
+      cascade: true,
+    },
+  },
+});

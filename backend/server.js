@@ -1,20 +1,24 @@
 require('dotenv').config();
+require('reflect-metadata');
 const express = require('express');
-const { sequelize } = require('./models');
+const { AppDataSource } = require('./config/database');
 const authRoutes = require('./routes/authRoutes');
 const employeeRoutes = require('./routes/employeeRoutes');
 
 const app = express();
-
 app.use(express.json());
-
-app.use('/api/auth', authRoutes);
-app.use('/api/employees', employeeRoutes);
 
 const PORT = process.env.PORT || 5000;
 
-sequelize.sync({ force: false }).then(() => {
+AppDataSource.initialize().then(() => {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
+}).catch(error => {
+  console.error('Error connecting to the database', error);
+  process.exit(1);
 });
+
+// Rutas
+app.use('/api/auth', authRoutes);
+app.use('/api/employees', employeeRoutes);

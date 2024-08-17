@@ -1,37 +1,57 @@
+const { EntitySchema } = require('typeorm');
 const bcrypt = require('bcryptjs');
+const UserRole = require('../config/roles');
 
-module.exports = (sequelize, DataTypes) => {
-  const User = sequelize.define('User', {
+module.exports = new EntitySchema({
+  name: 'User',
+  tableName: 'Users',
+  columns: {
+    id: {
+      type: 'int',
+      primary: true,
+      generated: true,
+    },
     username: {
-      type: DataTypes.STRING,
-      allowNull: false,
+      type: 'varchar',
       unique: true,
+      nullable: false,
     },
     email: {
-      type: DataTypes.STRING,
-      allowNull: false,
+      type: 'varchar',
       unique: true,
-      validate: {
-        isEmail: true,
-      },
+      nullable: false,
     },
     password: {
-      type: DataTypes.STRING,
-      allowNull: false,
+      type: 'varchar',
+      nullable: false,
     },
     role: {
-      type: DataTypes.STRING,
-      defaultValue: 'employee',
+      type: 'varchar',
+      default: UserRole.EMPLOYEE,
     },
-  }, {
-    hooks: {
-      beforeSave: async (user) => {
-        if (user.password) {
-          user.password = await bcrypt.hash(user.password, 10);
-        }
-      },
+    isActive: {
+      type: 'boolean',
+      default: true,
     },
-  });
-
-  return User;
-};
+    createdAt: {
+      type: 'timestamp',
+      createDate: true,
+    },
+    updatedAt: {
+      type: 'timestamp',
+      updateDate: true,
+    },
+  },
+  hooks: {
+    beforeInsert: async (event) => {
+      if (event.entity.password) {
+        event.entity.password = await bcrypt.hash(event.entity.password, 10);
+      }
+    },
+    beforeUpdate: async (event) => {
+      if (event.entity.password) {
+        event.entity.password = await bcrypt.hash(event.entity.password, 10);
+      }
+    },
+  },
+});

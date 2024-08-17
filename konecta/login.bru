@@ -12,7 +12,6 @@ post {
 
 body:json {
   {
-    "username": "{{username}}",
     "email": "{{email}}",
     "password": "{{password}}"
   }
@@ -21,7 +20,7 @@ body:json {
 tests {
   test("get tokens", function() {
   const data = res.body;
-  let token = bru.setEnvVar("auth_token", data.token);
+  let token = bru.setEnvVar("token", data.token);
   //let csrf_token = bru.setEnvVar("auth_token", data.csrf_token);
   });
 }
