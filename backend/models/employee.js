@@ -12,10 +12,16 @@ module.exports = (sequelize, Sequelize) => {
     name: {
       type: Sequelize.STRING(50),
       allowNull: false,
+      validate: {
+        notEmpty: true,
+      },
     },
     salary: {
       type: Sequelize.FLOAT,
       allowNull: false,
+      validate: {
+        isFloat: true,
+      },
     },
   }, {
     tableName: 'employees',

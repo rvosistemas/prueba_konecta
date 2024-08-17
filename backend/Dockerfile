@@ -1,4 +1,4 @@
-FROM node:18
+FROM node:18-alpine
 
 WORKDIR /usr/src/app
 
@@ -8,6 +8,8 @@ RUN npm install
 
 COPY . .
 
-EXPOSE 3000
+RUN chmod +x ./start.sh
 
-CMD ["npm", "start"]
+EXPOSE 5000
+
+CMD ["./start.sh"]
