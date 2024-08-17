@@ -1,6 +1,6 @@
 require('dotenv').config();
 const { sequelize, User } = require('./models');
-const bcrypt = require('bcryptjs');
+const argon2 = require('argon2');
 
 const createSuperuser = async () => {
   try {
@@ -9,6 +9,10 @@ const createSuperuser = async () => {
     const username = process.env.ADMIN_USERNAME;
     const email = process.env.ADMIN_EMAIL;
     const password = process.env.ADMIN_PASSWORD;
+
+    console.log('Username -> ', username);
+    console.log('Email -> ', email);
+    console.log('Password -> ', password);
 
     if (!username || !email || !password) {
       console.error('Admin username, email, and password must be set in the environment variables.');
@@ -21,7 +25,7 @@ const createSuperuser = async () => {
       return;
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await argon2.hash(password);
 
     const adminUser = await User.create({
       username,
