@@ -1,5 +1,4 @@
 const { EntitySchema } = require('typeorm');
-const bcrypt = require('bcryptjs');
 const UserRole = require('../config/roles');
 
 module.exports = new EntitySchema({
@@ -40,18 +39,6 @@ module.exports = new EntitySchema({
     updatedAt: {
       type: 'timestamp',
       updateDate: true,
-    },
-  },
-  hooks: {
-    beforeInsert: async (event) => {
-      if (event.entity.password) {
-        event.entity.password = await bcrypt.hash(event.entity.password, 10);
-      }
-    },
-    beforeUpdate: async (event) => {
-      if (event.entity.password) {
-        event.entity.password = await bcrypt.hash(event.entity.password, 10);
-      }
     },
   },
 });

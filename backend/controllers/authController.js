@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const { AppDataSource } = require('../config/database');
+const AppDataSource = require('../config/database');
 const User = require('../models/User');
 const UserRole = require('../config/roles');
 
@@ -9,10 +9,23 @@ exports.register = async (req, res) => {
     const { username, email, password } = req.body;
 
     const userRepository = AppDataSource.getRepository(User);
+
+    const existingUserByUsername = await userRepository.findOne({ where: { username } });
+    if (existingUserByUsername) {
+      return res.status(400).json({ error: 'Username already exists' });
+    }
+
+    const existingUserByEmail = await userRepository.findOne({ where: { email } });
+    if (existingUserByEmail) {
+      return res.status(400).json({ error: 'Email already exists' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const user = userRepository.create({
       username,
       email,
-      password,
+      password: hashedPassword,
       role: UserRole.EMPLOYEE,
     });
 
