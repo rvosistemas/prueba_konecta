@@ -1,0 +1,26 @@
+name: Prevent CreateSuperuser Merge to Dev and Main
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - main
+  push:
+    branches:
+      - dev
+      - main
+
+jobs:
+  check-create-superuser:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Check for createSuperuser.js
+        run: |
+          if [ -f "./backend/createSuperuser.js" ]; then
+            echo "Error: createSuperuser.js found. This file should not be merged into dev or main."
+            exit 1
+          fi
+        shell: bash

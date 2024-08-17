@@ -1,0 +1,27 @@
+meta {
+  name: login
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://127.0.0.1:5000/api/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "username": "{{username}}",
+    "email": "{{email}}",
+    "password": "{{password}}"
+  }
+}
+
+tests {
+  test("get tokens", function() {
+  const data = res.body;
+  let token = bru.setEnvVar("auth_token", data.token);
+  //let csrf_token = bru.setEnvVar("auth_token", data.csrf_token);
+  });
+}
