@@ -8,8 +8,6 @@ RUN npm install
 
 COPY . .
 
-RUN chmod +x ./start.sh
+CMD ["sh", "-c", "if [ \"$NODE_ENV\" = \"development\" ]; then npx nodemon server.js; else npm start; fi"]
 
 EXPOSE 5000
-
-CMD ["./start.sh"]
