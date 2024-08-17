@@ -24,10 +24,12 @@ const createSuperuser = async () => {
       return;
     }
 
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const adminUser = await User.create({
       username,
       email,
-      password, // Plain password, will be hashed by the hook
+      password: hashedPassword,
       role: 'admin',
     });
 
