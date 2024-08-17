@@ -1,6 +1,5 @@
 require('dotenv').config();
 const { sequelize, User } = require('./models');
-const argon2 = require('argon2');
 
 const createSuperuser = async () => {
   try {
@@ -25,12 +24,10 @@ const createSuperuser = async () => {
       return;
     }
 
-    const hashedPassword = await argon2.hash(password);
-
     const adminUser = await User.create({
       username,
       email,
-      password: hashedPassword,
+      password, // Plain password, will be hashed by the hook
       role: 'admin',
     });
 
