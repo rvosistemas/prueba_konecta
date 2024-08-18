@@ -1,9 +1,9 @@
-require('dotenv').config();
-require('reflect-metadata');
-const express = require('express');
-const AppDataSource = require('./config/database');
-const authRoutes = require('./routes/authRoutes');
-const employeeRoutes = require('./routes/employeeRoutes');
+import 'dotenv/config';
+import 'reflect-metadata';
+import express from 'express';
+import authRoutes from './routes/authRoutes.js';
+import employeeRoutes from './routes/employeeRoutes.js';
+import { AppDataSource } from './config/database.js';
 
 const app = express();
 app.use(express.json());

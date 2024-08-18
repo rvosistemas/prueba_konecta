@@ -1,14 +1,11 @@
-const { EntitySchema } = require('typeorm');
+import { EntitySchema } from 'typeorm';
+import BaseEntity from './BaseEntity.js';
 
-module.exports = new EntitySchema({
+const Employee = new EntitySchema({
   name: 'Employee',
   tableName: 'Employees',
   columns: {
-    id: {
-      type: 'int',
-      primary: true,
-      generated: true,
-    },
+    ...BaseEntity.options.columns,
     hire_date: {
       type: 'date',
       nullable: false,
@@ -21,17 +18,7 @@ module.exports = new EntitySchema({
       type: 'float',
       nullable: false,
     },
-    isActive: {
-      type: 'boolean',
-      default: true,
-    },
-    createdAt: {
-      type: 'timestamp',
-      createDate: true,
-    },
-    updatedAt: {
-      type: 'timestamp',
-      updateDate: true,
-    },
   },
 });
+
+export { Employee };

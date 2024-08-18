@@ -1,6 +1,6 @@
-const { EntitySchema } = require('typeorm');
+import { EntitySchema } from 'typeorm';
 
-module.exports = new EntitySchema({
+const BaseEntity = new EntitySchema({
   name: 'BaseEntity',
   columns: {
     id: {
@@ -21,4 +21,7 @@ module.exports = new EntitySchema({
       updateDate: true,
     },
   },
+  abstract: true,
 });
+
+export default BaseEntity;
