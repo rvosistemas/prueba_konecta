@@ -1,5 +1,5 @@
 import { AppDataSource } from '../config/database.js';
-import { Employee } from '../models/Employee.js';
+import { Employee } from '../models/employee.js';
 
 export const createEmployee = async (req, res) => {
   try {

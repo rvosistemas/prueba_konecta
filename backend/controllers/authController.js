@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { AppDataSource } from '../config/database.js';
-import User from '../models/User.js';
+import User from '../models/user.js';
 import UserRole from '../config/roles.js';
 
 export const register = async (req, res) => {
