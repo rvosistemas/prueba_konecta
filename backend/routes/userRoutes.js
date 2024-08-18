@@ -1,6 +1,7 @@
-const express = require('express');
-const { getUsers, deleteUser } = require('../controllers/userController');
-const authMiddleware = require('../middlewares/authMiddleware');
+import express from 'express';
+import { getUsers, deleteUser } from '../controllers/userController';
+import authMiddleware from '../middlewares/authMiddleware';
+
 const router = express.Router();
 
 router.get('/', authMiddleware, getUsers);

@@ -1,13 +1,13 @@
-require('dotenv').config();
-require('reflect-metadata');
-const { DataSource } = require('typeorm');
-const User = require('../models/User');
-const Employee = require('../models/Employee');
-const Request = require('../models/Request');
+import 'dotenv/config';
+import 'reflect-metadata';
+import { DataSource } from 'typeorm';
+import User from '../models/User.js';
+import { Employee } from '../models/Employee.js';
+import { Request } from '../models/Request.js';
 
 const isDevelopment = process.env.NODE_ENV === 'development';
 
-const AppDataSource = new DataSource({
+export const AppDataSource = new DataSource({
   type: 'postgres',
   host: process.env.DB_HOST,
   port: parseInt(process.env.DB_PORT, 10),
@@ -21,5 +21,3 @@ const AppDataSource = new DataSource({
   migrations: ['src/migration/**/*.js'],
   subscribers: [],
 });
-
-module.exports = AppDataSource;

@@ -1,10 +1,10 @@
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-const AppDataSource = require('../config/database');
-const User = require('../models/User');
-const UserRole = require('../config/roles');
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import { AppDataSource } from '../config/database.js';
+import User from '../models/User.js';
+import UserRole from '../config/roles.js';
 
-exports.register = async (req, res) => {
+export const register = async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
@@ -37,7 +37,7 @@ exports.register = async (req, res) => {
   }
 };
 
-exports.login = async (req, res) => {
+export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
     const userRepository = AppDataSource.getRepository(User);
@@ -58,7 +58,7 @@ exports.login = async (req, res) => {
   }
 };
 
-exports.getUserProfile = async (req, res) => {
+export const getUserProfile = async (req, res) => {
   try {
     const userRepository = AppDataSource.getRepository(User);
 
@@ -77,7 +77,7 @@ exports.getUserProfile = async (req, res) => {
   }
 };
 
-exports.updateUserRole = async (req, res) => {
+export const updateUserRole = async (req, res) => {
   try {
     const { userId } = req.params;
     const { role } = req.body;
@@ -103,3 +103,4 @@ exports.updateUserRole = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
+

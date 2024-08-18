@@ -1,15 +1,12 @@
-const { EntitySchema } = require('typeorm');
-const UserRole = require('../config/roles');
+import { EntitySchema } from 'typeorm';
+import UserRole from '../config/roles.js';
+import BaseEntity from './BaseEntity.js';
 
-module.exports = new EntitySchema({
+const User = new EntitySchema({
   name: 'User',
   tableName: 'Users',
   columns: {
-    id: {
-      type: 'int',
-      primary: true,
-      generated: true,
-    },
+    ...BaseEntity.options.columns,
     username: {
       type: 'varchar',
       unique: true,
@@ -28,17 +25,7 @@ module.exports = new EntitySchema({
       type: 'varchar',
       default: UserRole.EMPLOYEE,
     },
-    isActive: {
-      type: 'boolean',
-      default: true,
-    },
-    createdAt: {
-      type: 'timestamp',
-      createDate: true,
-    },
-    updatedAt: {
-      type: 'timestamp',
-      updateDate: true,
-    },
   },
 });
+
+export default User;

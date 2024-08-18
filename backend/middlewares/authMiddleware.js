@@ -1,8 +1,7 @@
-// backend/middlewares/authMiddleware.js
-const jwt = require('jsonwebtoken');
-const { User } = require('../models/User');
+import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
 
-exports.authenticate = async (req, res, next) => {
+export const authenticate = async (req, res, next) => {
   try {
     const token = req.header('Authorization').replace('Bearer ', '');
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -19,7 +18,7 @@ exports.authenticate = async (req, res, next) => {
   }
 };
 
-exports.authorize = (roles) => (req, res, next) => {
+export const authorize = (roles) => (req, res, next) => {
   if (!roles.includes(req.user.role)) {
     return res.status(403).json({ error: 'Access denied' });
   }
