@@ -1,32 +1,24 @@
-module.exports = (sequelize, Sequelize) => {
-  const Employee = sequelize.define('Employee', {
-    id: {
-      type: Sequelize.INTEGER,
-      primaryKey: true,
-      autoIncrement: true,
-    },
+import { EntitySchema } from 'typeorm';
+import BaseEntity from './BaseEntity.js';
+
+const Employee = new EntitySchema({
+  name: 'Employee',
+  tableName: 'Employees',
+  columns: {
+    ...BaseEntity.options.columns,
     hire_date: {
-      type: Sequelize.DATE,
-      allowNull: false,
+      type: 'date',
+      nullable: false,
     },
     name: {
-      type: Sequelize.STRING(50),
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
+      type: 'varchar',
+      nullable: false,
     },
     salary: {
-      type: Sequelize.FLOAT,
-      allowNull: false,
-      validate: {
-        isFloat: true,
-      },
+      type: 'float',
+      nullable: false,
     },
-  }, {
-    tableName: 'employees',
-    timestamps: false,
-  });
+  },
+});
 
-  return Employee;
-};
+export { Employee };

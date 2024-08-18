@@ -1,34 +1,36 @@
-module.exports = (sequelize, Sequelize) => {
-  const Request = sequelize.define('Request', {
-    id: {
-      type: Sequelize.INTEGER,
-      primaryKey: true,
-      autoIncrement: true,
-    },
+import { EntitySchema } from 'typeorm';
+import BaseEntity from './BaseEntity.js';
+
+const Request = new EntitySchema({
+  name: 'Request',
+  tableName: 'Requests',
+  columns: {
+    ...BaseEntity.options.columns,
     code: {
-      type: Sequelize.STRING(50),
-      allowNull: false,
+      type: 'varchar',
+      nullable: false,
     },
     description: {
-      type: Sequelize.STRING(50),
-      allowNull: false,
+      type: 'varchar',
+      nullable: false,
     },
     summary: {
-      type: Sequelize.STRING(50),
-      allowNull: false,
+      type: 'varchar',
+      nullable: false,
     },
     employee_id: {
-      type: Sequelize.INTEGER,
-      references: {
-        model: 'employees',
-        key: 'id',
-      },
-      allowNull: false,
+      type: 'int',
+      nullable: false,
     },
-  }, {
-    tableName: 'requests',
-    timestamps: false,
-  });
+  },
+  relations: {
+    employee: {
+      target: 'Employee',
+      type: 'many-to-one',
+      joinColumn: { name: 'employee_id' },
+      cascade: true,
+    },
+  },
+});
 
-  return Request;
-};
+export { Request };

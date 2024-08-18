@@ -1,37 +1,31 @@
-const bcrypt = require('bcryptjs');
+import { EntitySchema } from 'typeorm';
+import UserRole from '../config/roles.js';
+import BaseEntity from './BaseEntity.js';
 
-module.exports = (sequelize, DataTypes) => {
-  const User = sequelize.define('User', {
+const User = new EntitySchema({
+  name: 'User',
+  tableName: 'Users',
+  columns: {
+    ...BaseEntity.options.columns,
     username: {
-      type: DataTypes.STRING,
-      allowNull: false,
+      type: 'varchar',
       unique: true,
+      nullable: false,
     },
     email: {
-      type: DataTypes.STRING,
-      allowNull: false,
+      type: 'varchar',
       unique: true,
-      validate: {
-        isEmail: true,
-      },
+      nullable: false,
     },
     password: {
-      type: DataTypes.STRING,
-      allowNull: false,
+      type: 'varchar',
+      nullable: false,
     },
     role: {
-      type: DataTypes.STRING,
-      defaultValue: 'employee',
+      type: 'varchar',
+      default: UserRole.EMPLOYEE,
     },
-  }, {
-    hooks: {
-      beforeSave: async (user) => {
-        if (user.password) {
-          user.password = await bcrypt.hash(user.password, 10);
-        }
-      },
-    },
-  });
+  },
+});
 
-  return User;
-};
+export default User;
