@@ -7,9 +7,9 @@ const router = express.Router();
 
 router.get('/', authenticate, authorize([UserRole.EMPLOYEE, UserRole.ADMIN]), getEmployees);
 router.get('/:id', authenticate, authorize([UserRole.EMPLOYEE, UserRole.ADMIN]), getEmployee);
-router.post('/', authenticate, authorize(['admin']), createEmployee);
-router.put('/:id', authenticate, authorize(['admin']), updateEmployee);
-router.delete('/:id', authenticate, authorize(['admin']), deactivateEmployee);
+router.post('/', authenticate, authorize([UserRole.ADMIN]), createEmployee);
+router.put('/:id', authenticate, authorize([UserRole.ADMIN]), updateEmployee);
+router.delete('/:id', authenticate, authorize([UserRole.ADMIN]), deactivateEmployee);
 
 
 export default router;

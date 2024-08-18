@@ -1,7 +1,7 @@
 import { AppDataSource } from '../config/database.js';
 import User from '../models/user.js';
 import UserRole from '../config/roles.js';
-
+import bcrypt from 'bcryptjs';
 
 export const getUsers = async (req, res) => {
   try {
@@ -42,8 +42,11 @@ export const updateUser = async (req, res) => {
     if (password) {
       user.password = await bcrypt.hash(password, 10);
     }
-    if (role in UserRole) {
+
+    if (Object.values(UserRole).includes(role)) {
       user.role = role;
+    } else {
+      return res.status(400).json({ error: 'Invalid role' });
     }
 
     user.username = username;

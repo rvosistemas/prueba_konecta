@@ -3,8 +3,8 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { AppDataSource } from '../../config/database.js';
 import UserRole from '../../config/roles.js';
-import { register, login, getUserProfile, updateUserRole } from '../../controllers/authController.js';
-import User from '../../models/User.js';
+import { register, login, getUserProfile } from '../../controllers/authController.js';
+import User from '../../models/user.js';
 
 describe('Auth Controller', () => {
   let req, res, userRepositoryMock;
@@ -184,70 +184,6 @@ describe('Auth Controller', () => {
       jest.spyOn(AppDataSource.getRepository(User), 'findOne').mockRejectedValue(new Error('Database error'));
 
       await getUserProfile(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ error: 'Database error' }));
-    });
-
-  });
-
-  describe('Update User Role', () => {
-    beforeEach(() => {
-      req.params.userId = 1;
-      req.body.role = 'employee';
-    });
-
-    describe('Successful update', () => {
-      it('should update user role successfully', async () => {
-        const user = { id: 1, role: UserRole.EMPLOYEE };
-        userRepositoryMock.findOneBy.mockResolvedValue(user);
-
-        req.body.role = 'admin';
-
-        await updateUserRole(req, res);
-
-        expect(userRepositoryMock.save).toHaveBeenCalledWith(expect.objectContaining({
-          id: 1,
-          role: 'admin'
-        }));
-        expect(res.status).toHaveBeenCalledWith(200);
-        expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-          message: 'User role updated successfully',
-          user: expect.objectContaining({ role: 'admin' })
-        }));
-      });
-    });
-
-    describe('Failed update', () => {
-      it('should return 404 if user not found', async () => {
-        userRepositoryMock.findOneBy.mockResolvedValueOnce(null);
-
-        req.body.role = 'employee';
-
-        await updateUserRole(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(404);
-        expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-          error: 'User not found'
-        }));
-      });
-
-      it('should return 400 if role is invalid', async () => {
-        req.body.role = 'invalidRole';
-
-        await updateUserRole(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-          error: 'Invalid role provided.'
-        }));
-      });
-    });
-
-    it('should handle errors and return 400 status code', async () => {
-      jest.spyOn(AppDataSource.getRepository(User), 'findOneBy').mockRejectedValue(new Error('Database error'));
-
-      await updateUserRole(req, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ error: 'Database error' }));

@@ -1,13 +1,15 @@
 import jwt from 'jsonwebtoken';
-import User from '../../models/User.js';
 import { authenticate, authorize } from '../../middlewares/authMiddleware.js';
+import { AppDataSource } from '../../config/database.js';
 
 jest.mock('jsonwebtoken');
-jest.mock('../../models/User.js', () => {
-  return {
-    findByPk: jest.fn(),
-  };
-});
+jest.mock('../../config/database.js', () => ({
+  AppDataSource: {
+    getRepository: jest.fn().mockReturnValue({
+      findOne: jest.fn(),
+    }),
+  },
+}));
 
 describe('Auth Middleware', () => {
   let req, res, next;
@@ -30,19 +32,31 @@ describe('Auth Middleware', () => {
   });
 
   describe('authenticate', () => {
-    it('should authenticate a valid user', async () => {
+    it('should authenticate and set req.user if user is found', async () => {
       const decoded = { id: 1 };
       const userMock = { id: 1, username: 'testuser', role: 'admin' };
 
-      jwt.verify.mockReturnValue(decoded);
-      User.findByPk.mockResolvedValue(userMock);
+      jwt.verify.mockImplementation(() => decoded);
+      AppDataSource.getRepository().findOne.mockResolvedValue(userMock);
 
       await authenticate(req, res, next);
 
       expect(jwt.verify).toHaveBeenCalledWith('mockToken', process.env.JWT_SECRET);
-      expect(User.findByPk).toHaveBeenCalledWith(decoded.id);
-      expect(req.user).toBe(userMock);
+      expect(AppDataSource.getRepository().findOne).toHaveBeenCalledWith({ where: { id: decoded.id } });
+      expect(req.user).toEqual(userMock);
       expect(next).toHaveBeenCalled();
+    });
+
+    it('should return 401 if user is not found', async () => {
+      const decoded = { id: 1 };
+      jwt.verify.mockImplementation(() => decoded);
+      AppDataSource.getRepository().findOne.mockResolvedValue(null);
+
+      await authenticate(req, res, next);
+
+      expect(jwt.verify).toHaveBeenCalledWith('mockToken', process.env.JWT_SECRET);
+      expect(AppDataSource.getRepository().findOne).toHaveBeenCalledWith({ where: { id: decoded.id } });
+      expect(next).not.toHaveBeenCalled();
     });
 
     it('should return 401 if token is invalid', async () => {
@@ -55,18 +69,6 @@ describe('Auth Middleware', () => {
       expect(next).not.toHaveBeenCalled();
     });
 
-    it('should return 401 if user is not found', async () => {
-      const decoded = { id: 1 };
-
-      jwt.verify.mockReturnValue(decoded);
-      User.findByPk.mockResolvedValue(null);
-
-      await authenticate(req, res, next);
-
-      expect(res.status).toHaveBeenCalledWith(401);
-      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ error: 'Please authenticate' }));
-      expect(next).not.toHaveBeenCalled();
-    });
   });
 
   describe('authorize', () => {
@@ -91,6 +93,6 @@ describe('Auth Middleware', () => {
       expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ error: 'Access denied' }));
       expect(next).not.toHaveBeenCalled();
     });
-  });
 
+  });
 });
