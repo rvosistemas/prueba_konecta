@@ -1,9 +1,11 @@
-require('dotenv').config();
-const { sequelize, User } = require('./models');
+import 'dotenv/config';
+import bcrypt from 'bcryptjs';
+import { AppDataSource } from './config/database.js';
+import User from './models/user.js';
 
 const createSuperuser = async () => {
   try {
-    await sequelize.sync();
+    await AppDataSource.initialize();
 
     const username = process.env.ADMIN_USERNAME;
     const email = process.env.ADMIN_EMAIL;
@@ -18,7 +20,9 @@ const createSuperuser = async () => {
       process.exit(1);
     }
 
-    const adminExists = await User.findOne({ where: { email, role: 'admin' } });
+    const userRepository = AppDataSource.getRepository(User);
+
+    const adminExists = await userRepository.findOne({ where: { email, role: 'admin' } });
     if (adminExists) {
       console.log('Admin user already exists.');
       return;
@@ -26,18 +30,20 @@ const createSuperuser = async () => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const adminUser = await User.create({
+    const adminUser = userRepository.create({
       username,
       email,
       password: hashedPassword,
       role: 'admin',
     });
 
+    await userRepository.save(adminUser);
+
     console.log('Admin user created successfully:', adminUser);
   } catch (error) {
     console.error('Error creating admin user:', error.message);
   } finally {
-    await sequelize.close();
+    await AppDataSource.destroy();
   }
 };
 
