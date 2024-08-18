@@ -13,16 +13,18 @@ services:
       db:
         condition: service_healthy
 
-  # frontend:
-  #   container_name: konecta_frontend
-  #   build: ./frontend
-  #   ports:
-  #     - "${FRONTEND_PORT}:${FRONTEND_PORT}"
-  #   env_file: ./frontend/.env
-  #   volumes:
-  #     - ./frontend:/usr/src/app
-  #   networks:
-  #     - konecta_network
+  frontend:
+    container_name: konecta_frontend
+    build: ./frontend
+    ports:
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+    env_file: ./frontend/.env
+    volumes:
+      - ./frontend:/usr/src/app
+    networks:
+      - konecta_network
+    depends_on:
+      - backend
 
   db:
     container_name: konecta_db
