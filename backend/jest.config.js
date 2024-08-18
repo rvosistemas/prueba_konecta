@@ -8,9 +8,10 @@ export default {
   },
   collectCoverage: true,
   collectCoverageFrom: [
+    'models/**/*.js',
     'controllers/**/*.js',
     'middlewares/**/*.js',
-    'models/**/*.js',
+    'routes/**/*.js',
   ],
   coverageDirectory: '<rootDir>/coverage',
   coverageReporters: ['text', 'html'],

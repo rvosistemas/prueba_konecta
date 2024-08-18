@@ -1,15 +1,13 @@
-import { getUsers, deactivateUser, deleteUser } from '../../controllers/userController';
-import User from '../../models/User.js';
+import { getUsers, getUser, updateUser, deactivateUser, deleteUser } from '../../controllers/userController';
+import { AppDataSource } from '../../config/database.js';
+import bcrypt from 'bcryptjs';
 
-jest.mock('../../models/User.js', () => {
-  return {
-    findAll: jest.fn(),
-    findByPk: jest.fn(),
-  };
-});
+jest.mock('bcryptjs', () => ({
+  hash: jest.fn().mockResolvedValue('hashedPassword'),
+}));
 
 describe('User Controller', () => {
-  let req, res;
+  let req, res, userRepository;
 
   beforeEach(() => {
     req = {
@@ -21,6 +19,15 @@ describe('User Controller', () => {
       status: jest.fn().mockReturnThis(),
       json: jest.fn(),
     };
+
+    userRepository = {
+      find: jest.fn(),
+      findOneBy: jest.fn(),
+      save: jest.fn(),
+      remove: jest.fn(),
+    };
+
+    jest.spyOn(AppDataSource, 'getRepository').mockReturnValue(userRepository);
   });
 
   afterEach(() => {
@@ -34,42 +41,159 @@ describe('User Controller', () => {
         { id: 2, username: 'testuser2', isActive: true },
       ];
 
-      User.findAll.mockResolvedValue(usersMock);
-
-      const result = await User.findAll({ where: { isActive: true } });
+      userRepository.find.mockResolvedValue(usersMock);
 
       await getUsers(req, res);
 
-      expect(User.findAll).toHaveBeenCalledWith(expect.objectContaining({ where: { isActive: true } }));
+      expect(userRepository.find).toHaveBeenCalledWith(expect.objectContaining({ where: { isActive: true } }));
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({ users: usersMock });
     });
 
     it('should handle errors and return 400 status code', async () => {
       const errorMessage = 'Database error';
-      User.findAll.mockRejectedValue(new Error(errorMessage));
+      userRepository.find.mockRejectedValue(new Error(errorMessage));
 
       await getUsers(req, res);
 
-      expect(User.findAll).toHaveBeenCalled();
+      expect(userRepository.find).toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ error: errorMessage }));
     });
+  });
 
+  describe('getUser', () => {
+    it('should return a user if found', async () => {
+      req.params.id = 1;
+      const userMock = { id: 1, username: 'testuser1' };
+      userRepository.findOneBy.mockResolvedValue(userMock);
+
+      await getUser(req, res);
+
+      expect(userRepository.findOneBy).toHaveBeenCalledWith({ id: 1 });
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({ user: userMock });
+    });
+
+    it('should return 404 if user is not found', async () => {
+      req.params.id = 1;
+      userRepository.findOneBy.mockResolvedValue(null);
+
+      await getUser(req, res);
+
+      expect(userRepository.findOneBy).toHaveBeenCalledWith({ id: 1 });
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ error: 'User not found' }));
+    });
+
+    it('should handle errors and return 400 status code', async () => {
+      req.params.id = 1;
+      userRepository.findOneBy.mockRejectedValue(new Error('Database error'));
+
+      await getUser(req, res);
+
+      expect(userRepository.findOneBy).toHaveBeenCalledWith({ id: 1 });
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ error: 'Database error' }));
+    });
+  });
+
+  describe('updateUser', () => {
+    it('should update a user successfully with valid role', async () => {
+      req.params.id = 1;
+      req.body = { username: 'newuser', email: 'newuser@test.com', password: 'newpass', role: 'admin' };
+
+      const userMock = { id: 1, username: 'olduser', email: 'olduser@test.com', password: 'oldpass', role: 'employee' };
+      userRepository.findOneBy.mockResolvedValue(userMock);
+
+      await updateUser(req, res);
+
+      expect(userRepository.findOneBy).toHaveBeenCalledWith({ id: 1 });
+      expect(bcrypt.hash).toHaveBeenCalledWith('newpass', 10);
+      expect(userRepository.save).toHaveBeenCalledWith({
+        ...userMock,
+        username: 'newuser',
+        email: 'newuser@test.com',
+        password: 'hashedPassword',
+        role: 'admin'
+      });
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        message: 'User updated successfully',
+      }));
+    });
+
+    it('should return 404 if user to update is not found', async () => {
+      req.params.id = 1;
+      userRepository.findOneBy.mockResolvedValue(null);
+
+      await updateUser(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ error: 'User not found' }));
+    });
+
+    it('should update a user successfully without changing the password', async () => {
+      req.params.id = 1;
+      req.body = { username: 'newuser', email: 'newuser@test.com', role: 'admin' };
+
+      const userMock = { id: 1, username: 'olduser', email: 'olduser@test.com', password: 'oldpass', role: 'employee' };
+      userRepository.findOneBy.mockResolvedValue(userMock);
+
+      await updateUser(req, res);
+
+      expect(userRepository.findOneBy).toHaveBeenCalledWith({ id: 1 });
+      expect(bcrypt.hash).not.toHaveBeenCalled();
+      expect(userRepository.save).toHaveBeenCalledWith({
+        ...userMock,
+        username: 'newuser',
+        email: 'newuser@test.com',
+        password: 'oldpass',
+        role: 'admin'
+      });
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        message: 'User updated successfully',
+      }));
+    });
+
+    it('should return 400 if role is invalid', async () => {
+      req.params.id = 1;
+      req.body = { username: 'newuser', email: 'newuser@test.com', password: 'newpass', role: 'invalidRole' };
+
+      const userMock = { id: 1, username: 'olduser', email: 'olduser@test.com', password: 'oldpass', role: 'employee' };
+      userRepository.findOneBy.mockResolvedValue(userMock);
+
+      await updateUser(req, res);
+
+      expect(userRepository.findOneBy).toHaveBeenCalledWith({ id: 1 });
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ error: 'Invalid role' }));
+    });
+
+    it('should handle errors and return 400 status code', async () => {
+      req.params.id = 1;
+      userRepository.findOneBy.mockRejectedValue(new Error('Database error'));
+
+      await updateUser(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ error: 'Database error' }));
+    });
   });
 
   describe('deactivateUser', () => {
     it('should deactivate a user successfully', async () => {
       req.params.userId = 1;
 
-      const userMock = { id: 1, isActive: true, save: jest.fn() };
-      User.findByPk.mockResolvedValue(userMock);
+      const userMock = { id: 1, isActive: true };
+      userRepository.findOneBy.mockResolvedValue(userMock);
 
       await deactivateUser(req, res);
 
-      expect(User.findByPk).toHaveBeenCalledWith(1);
+      expect(userRepository.findOneBy).toHaveBeenCalledWith(expect.objectContaining({ id: 1 }));
       expect(userMock.isActive).toBe(false);
-      expect(userMock.save).toHaveBeenCalled();
+      expect(userRepository.save).toHaveBeenCalledWith(userMock);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({ message: 'User deactivated successfully' });
     });
@@ -77,7 +201,7 @@ describe('User Controller', () => {
     it('should return 404 if user not found', async () => {
       req.params.userId = 1;
 
-      User.findByPk.mockResolvedValue(null);
+      userRepository.findOneBy.mockResolvedValue(null);
 
       await deactivateUser(req, res);
 
@@ -86,7 +210,7 @@ describe('User Controller', () => {
     });
 
     it('should handle errors and return 400 status code', async () => {
-      User.findByPk.mockRejectedValue(new Error('Database error'));
+      userRepository.findOneBy.mockRejectedValue(new Error('Database error'));
 
       await deactivateUser(req, res);
 
@@ -99,13 +223,13 @@ describe('User Controller', () => {
     it('should delete a user successfully', async () => {
       req.params.id = 1;
 
-      const userMock = { id: 1, destroy: jest.fn() };
-      User.findByPk.mockResolvedValue(userMock);
+      const userMock = { id: 1 };
+      userRepository.findOneBy.mockResolvedValue(userMock);
 
       await deleteUser(req, res);
 
-      expect(User.findByPk).toHaveBeenCalledWith(1);
-      expect(userMock.destroy).toHaveBeenCalled();
+      expect(userRepository.findOneBy).toHaveBeenCalledWith(expect.objectContaining({ id: 1 }));
+      expect(userRepository.remove).toHaveBeenCalledWith(userMock);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({ message: 'User deleted successfully' });
     });
@@ -113,7 +237,7 @@ describe('User Controller', () => {
     it('should return 404 if user not found', async () => {
       req.params.id = 1;
 
-      User.findByPk.mockResolvedValue(null);
+      userRepository.findOneBy.mockResolvedValue(null);
 
       await deleteUser(req, res);
 
@@ -122,7 +246,7 @@ describe('User Controller', () => {
     });
 
     it('should handle errors and return 400 status code', async () => {
-      User.findByPk.mockRejectedValue(new Error('Database error'));
+      userRepository.findOneBy.mockRejectedValue(new Error('Database error'));
 
       await deleteUser(req, res);
 
