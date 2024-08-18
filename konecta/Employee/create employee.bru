@@ -1,0 +1,23 @@
+meta {
+  name: create employee
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://127.0.0.1:5000/api/employees/
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "name": "richard",
+    "hire_date": "26/07/2024",
+    "salary": 3800000
+  }
+}

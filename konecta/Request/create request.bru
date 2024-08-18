@@ -1,0 +1,24 @@
+meta {
+  name: create request
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://127.0.0.1:5000/api/requests/
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "code": "code3",
+    "description": "description3",
+    "summary": "summary3",
+    "employee_id": "1"
+  }
+}

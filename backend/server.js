@@ -1,20 +1,38 @@
-require('dotenv').config();
-const express = require('express');
-const { sequelize } = require('./models');
-const authRoutes = require('./routes/authRoutes');
-const employeeRoutes = require('./routes/employeeRoutes');
+import 'dotenv/config';
+import 'reflect-metadata';
+import cors from 'cors';
+import express from 'express';
+import swaggerUi from 'swagger-ui-express';
+import authRoutes from './routes/authRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import employeeRoutes from './routes/employeeRoutes.js';
+import requestRoutes from './routes/requestRoutes.js';
+import { AppDataSource } from './config/database.js';
+import swaggerDocs from './config/swagger.js';
 
 const app = express();
-
 app.use(express.json());
 
-app.use('/api/auth', authRoutes);
-app.use('/api/employees', employeeRoutes);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
+app.use(cors());
 
 const PORT = process.env.PORT || 5000;
 
-sequelize.sync({ force: false }).then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+AppDataSource.initialize()
+  .then(async () => {
+    console.log('Database connection established');
+
+    app.use('/api/auth', authRoutes);
+    app.use('/api/users', userRoutes);
+    app.use('/api/employees', employeeRoutes);
+    app.use('/api/requests', requestRoutes);
+
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch(error => {
+    console.error('Error connecting to the database', error);
+    process.exit(1);
   });
-});

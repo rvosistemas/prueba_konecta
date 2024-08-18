@@ -1,0 +1,15 @@
+meta {
+  name: delete request
+  type: http
+  seq: 5
+}
+
+delete {
+  url: http://127.0.0.1:5000/api/requests/2
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

@@ -1,24 +1,95 @@
-// backend/controllers/userController.js
-const User = require('../models/user');
+import { AppDataSource } from '../config/database.js';
+import User from '../models/user.js';
+import UserRole from '../config/roles.js';
+import bcrypt from 'bcryptjs';
 
-exports.getUsers = async (req, res) => {
+export const getUsers = async (req, res) => {
   try {
-    const users = await User.findAll();
+    const userRepository = AppDataSource.getRepository(User);
+    const users = await userRepository.find({ where: { isActive: true } });
     res.status(200).json({ users });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };
 
-exports.deleteUser = async (req, res) => {
+export const getUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const user = await User.findByPk(id);
+    const userRepository = AppDataSource.getRepository(User);
+    const user = await userRepository.findOneBy({ id });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.status(200).json({ user });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+export const updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { username, email, password, role } = req.body;
+
+    const userRepository = AppDataSource.getRepository(User);
+    const user = await userRepository.findOneBy({ id });
+
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    await user.destroy();
+    if (password) {
+      user.password = await bcrypt.hash(password, 10);
+    }
+
+    if (Object.values(UserRole).includes(role)) {
+      user.role = role;
+    } else {
+      return res.status(400).json({ error: 'Invalid role' });
+    }
+
+    user.username = username;
+    user.email = email;
+
+    await userRepository.save(user);
+    res.status(200).json({ message: 'User updated successfully', user });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+
+export const deactivateUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const userRepository = AppDataSource.getRepository(User);
+    const user = await userRepository.findOneBy({ id: userId });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    user.isActive = false;
+    await userRepository.save(user);
+
+    res.status(200).json({ message: 'User deactivated successfully' });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+export const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const userRepository = AppDataSource.getRepository(User);
+    const user = await userRepository.findOneBy({ id });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    await userRepository.remove(user);
     res.status(200).json({ message: 'User deleted successfully' });
   } catch (error) {
     res.status(400).json({ error: error.message });

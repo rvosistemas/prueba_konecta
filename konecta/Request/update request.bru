@@ -1,0 +1,24 @@
+meta {
+  name: update request
+  type: http
+  seq: 4
+}
+
+put {
+  url: http://127.0.0.1:5000/api/requests/3
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "code": "code3",
+    "description": "description_3",
+    "summary": "summary3",
+    "employee_id": "1"
+  }
+}
