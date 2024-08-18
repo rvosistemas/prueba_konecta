@@ -1,14 +1,21 @@
 import 'dotenv/config';
 import 'reflect-metadata';
+import cors from 'cors';
 import express from 'express';
+import swaggerUi from 'swagger-ui-express';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import employeeRoutes from './routes/employeeRoutes.js';
 import requestRoutes from './routes/requestRoutes.js';
 import { AppDataSource } from './config/database.js';
+import swaggerDocs from './config/swagger.js';
 
 const app = express();
 app.use(express.json());
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
+app.use(cors());
 
 const PORT = process.env.PORT || 5000;
 
