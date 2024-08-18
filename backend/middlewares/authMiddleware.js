@@ -1,11 +1,14 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/user.js';
+import { AppDataSource } from '../config/database.js';
 
 export const authenticate = async (req, res, next) => {
   try {
     const token = req.header('Authorization').replace('Bearer ', '');
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findByPk(decoded.id);
+
+    const userRepository = AppDataSource.getRepository(User);
+    const user = await userRepository.findOne({ where: { id: decoded.id } });
 
     if (!user) {
       throw new Error('Authentication failed');

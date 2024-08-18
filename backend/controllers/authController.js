@@ -77,30 +77,5 @@ export const getUserProfile = async (req, res) => {
   }
 };
 
-export const updateUserRole = async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const { role } = req.body;
-    const getRoles = Object.values(UserRole);
 
-    if (!getRoles.includes(role)) {
-      return res.status(400).json({ error: 'Invalid role provided.' });
-    }
-
-    const userRepository = AppDataSource.getRepository(User);
-
-    const user = await userRepository.findOneBy({ id: userId });
-
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    user.role = role;
-    await userRepository.save(user);
-
-    res.status(200).json({ message: 'User role updated successfully', user });
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-};
 

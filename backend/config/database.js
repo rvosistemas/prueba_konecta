@@ -1,8 +1,8 @@
 import 'dotenv/config';
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
-import { Employee } from '../models/employee.js';
 import User from '../models/user.js';
+import { Employee } from '../models/employee.js';
 import { Request } from '../models/request.js';
 
 const isDevelopment = process.env.NODE_ENV === 'development';
