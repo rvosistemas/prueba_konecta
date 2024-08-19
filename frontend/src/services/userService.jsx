@@ -16,6 +16,19 @@ export const getUsersService = async (token, page = 1, limit = 10) => {
   }
 };
 
+export const getAvailableUsersService = async (token) => {
+  try {
+    const response = await axios.get(`${API_URL}/users/available`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to fetch available users ', error);
+  }
+}
+
 export const getUserByIdService = async (token, id) => {
   try {
     const response = await axios.get(`${API_URL}/users/${id}`, {
@@ -74,5 +87,18 @@ export const updateUserService = async (token, id, username, email, password, ro
     } else {
       throw new Error('An unexpected error occurred.');
     }
+  }
+};
+
+export const deleteUserService = async (token, id) => {
+  try {
+    const response = await axios.delete(`${API_URL}/users/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to delete user ', error);
   }
 };

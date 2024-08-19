@@ -6,7 +6,7 @@ import UserRole from '../config/roles.js';
 const router = express.Router();
 
 router.get('/', authenticate, authorize([UserRole.ADMIN]), getUsers);
-router.get('/available', authenticate, authorize(UserRole.EMPLOYEE, [UserRole.ADMIN]), getAvailableUsers);
+router.get('/available', authenticate, authorize([UserRole.EMPLOYEE, UserRole.ADMIN]), getAvailableUsers);
 router.get('/:id', authenticate, authorize([UserRole.ADMIN]), getUser);
 router.post('/', authenticate, authorize([UserRole.ADMIN]), createUser);
 router.put('/:id', authenticate, authorize([UserRole.ADMIN]), updateUser);

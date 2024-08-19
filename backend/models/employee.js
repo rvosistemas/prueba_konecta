@@ -18,6 +18,10 @@ const Employee = new EntitySchema({
       type: 'float',
       nullable: false,
     },
+    user_id: {
+      type: 'int',
+      nullable: true,
+    },
   },
   relations: {
     user: {

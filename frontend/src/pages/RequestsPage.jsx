@@ -1,5 +1,5 @@
 import { useEffect, useState, useContext, useCallback } from 'react';
-import { getRequestsService } from '../services/requestService';
+import { getRequestsService, deleteRequestService } from '../services/requestService';
 import { AuthContext } from '../contexts/AuthContext';
 import DataTable from '../components/DataTable';
 import Pagination from '../components/Pagination';
@@ -61,8 +61,19 @@ const RequestsPage = () => {
     setCurrentPage(page);
   };
 
-  const handleDelete = (id) => {
-    console.log('Delete', id);
+  const handleDelete = async (requestId) => {
+    if (window.confirm('Are you sure you want to delete this request?')) {
+      try {
+        setLoading(true);
+        await deleteRequestService(token, requestId);
+        setRequests(prevRequests => prevRequests.filter(request => request.id !== requestId));
+        alert('Request deleted successfully.');
+      } catch (error) {
+        console.error('Failed to delete request ', error);
+      } finally {
+        setLoading(false);
+      }
+    }
   };
 
   const columns = [

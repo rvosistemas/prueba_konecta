@@ -1,13 +1,36 @@
-import { useState } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import PropTypes from 'prop-types';
 import { createEmployeeService } from '../../services/employeeService';
+import { getAvailableUsersService } from '../../services/userService';
+import { AuthContext } from '../../contexts/AuthContext';
+import { formatDateToDDMMYYYY } from '../../utils/format';
 
 const EmployeeForm = ({ onSuccess, onClose }) => {
   const [name, setName] = useState('');
   const [hireDate, setHireDate] = useState('');
   const [salary, setSalary] = useState('');
+  const [userId, setUserId] = useState('');
+  const [users, setUsers] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const { token } = useContext(AuthContext);
+
+  useEffect(() => {
+    const fetchAvailableUsers = async () => {
+      try {
+        const data = await getAvailableUsersService(token);
+        if (data === null || data === undefined) {
+          throw new Error('Failed to load available users');
+        }
+        setUsers(data.users);
+      } catch (error) {
+        console.error('Failed to load available users ', error);
+        setError('Failed to load available users');
+      }
+    };
+
+    fetchAvailableUsers();
+  }, [token]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -15,7 +38,8 @@ const EmployeeForm = ({ onSuccess, onClose }) => {
 
     try {
       setLoading(true);
-      await createEmployeeService(name, hireDate, salary);
+      const formattedHireDate = formatDateToDDMMYYYY(hireDate);
+      await createEmployeeService(token, name, formattedHireDate, salary, userId);
       onSuccess();
       onClose();
     } catch (error) {
@@ -66,6 +90,25 @@ const EmployeeForm = ({ onSuccess, onClose }) => {
           required
           className="mt-1 p-2 w-full border rounded-md"
         />
+      </div>
+
+      <div className="mb-4">
+        <label htmlFor="user" className="block text-sm font-medium text-gray-700">
+          User:
+        </label>
+        <select
+          value={userId}
+          onChange={(e) => setUserId(e.target.value)}
+          required
+          className="mt-1 p-2 w-full border rounded-md"
+        >
+          <option value="" disabled>Select a user</option>
+          {users.map((user) => (
+            <option key={user.id} value={user.id}>
+              {user.username}
+            </option>
+          ))}
+        </select>
       </div>
 
       <button

@@ -1,5 +1,5 @@
 import { useEffect, useState, useContext, useCallback } from 'react';
-import { getEmployeesService } from '../services/employeeService';
+import { getEmployeesService, deleteEmployeeService } from '../services/employeeService';
 import { AuthContext } from '../contexts/AuthContext';
 import DataTable from '../components/DataTable';
 import Pagination from '../components/Pagination';
@@ -62,9 +62,22 @@ const EmployeesPage = () => {
     setCurrentPage(page);
   };
 
-  const handleDelete = (id) => {
-    console.log('Delete', id);
+  const handleDelete = async (employeeId) => {
+    if (window.confirm("Are you sure you want to delete this employee?")) {
+      try {
+        setLoading(true);
+        await deleteEmployeeService(token, employeeId);
+        setEmployees(prevEmployees => prevEmployees.filter(emp => emp.id !== employeeId));
+        alert("Employee deleted successfully.");
+      } catch (error) {
+        console.error('Error deleting employee:', error);
+        alert("Failed to delete employee.");
+      } finally {
+        setLoading(false);
+      }
+    }
   };
+
 
   const columns = [
     { label: 'Name', field: 'name' },

@@ -1,5 +1,5 @@
 import { useEffect, useState, useContext, useCallback } from 'react';
-import { getUsersService } from '../services/userService';
+import { getUsersService, deleteUserService } from '../services/userService';
 import { AuthContext } from '../contexts/AuthContext';
 import DataTable from '../components/DataTable';
 import Pagination from '../components/Pagination';
@@ -62,8 +62,19 @@ const UserManagementPage = () => {
     setCurrentPage(page);
   };
 
-  const handleDelete = (id) => {
-    console.log('Delete', id);
+  const handleDelete = async (userId) => {
+    if (window.confirm('Are you sure you want to delete this user?')) {
+      try {
+        setLoading(true);
+        await deleteUserService(token, userId);
+        setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
+        alert('User deleted successfully.');
+      } catch (error) {
+        console.error('Failed to delete user ', error);
+      } finally {
+        setLoading(false);
+      }
+    }
   };
 
   const columns = [

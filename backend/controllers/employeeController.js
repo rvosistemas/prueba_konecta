@@ -4,12 +4,12 @@ import { Employee } from '../models/employee.js';
 
 export const createEmployee = async (req, res) => {
   try {
-    const { name, hire_date, salary } = req.body;
+    const { name, hire_date, salary, user_id } = req.body;
 
     const parsedHireDate = parse(hire_date, 'dd/MM/yyyy', new Date());
 
     const employeeRepository = AppDataSource.getRepository(Employee);
-    const employee = employeeRepository.create({ name, hire_date: parsedHireDate, salary });
+    const employee = employeeRepository.create({ name, hire_date: parsedHireDate, salary, user_id });
     await employeeRepository.save(employee);
     res.status(201).json({ message: 'Employee created successfully', employee });
   } catch (error) {

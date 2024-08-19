@@ -1,15 +1,35 @@
-import { useState, useContext } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import PropTypes from 'prop-types';
 import { createRequestService } from '../../services/requestService';
+import { getEmployeesService } from '../../services/employeeService';
 import { AuthContext } from '../../contexts/AuthContext';
 
 const RequestForm = ({ onSuccess, onClose }) => {
   const [code, setCode] = useState('');
   const [summary, setSummary] = useState('');
   const [description, setDescription] = useState('');
+  const [employeeId, setEmployeeId] = useState('');
+  const [employees, setEmployees] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const { token } = useContext(AuthContext);
+
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      try {
+        const employeesData = await getEmployeesService(token);
+        if (employeesData === null || employeesData === undefined) {
+          throw new Error('Failed to load employees');
+        }
+        setEmployees(employeesData.employees);
+      } catch (error) {
+        console.error('Failed to load employees ', error);
+        setError('Failed to load employees.');
+      }
+    };
+
+    fetchEmployees();
+  }, [token]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,11 +37,12 @@ const RequestForm = ({ onSuccess, onClose }) => {
 
     try {
       setLoading(true);
-      await createRequestService(token, code, summary, description);
+      await createRequestService(token, code, summary, description, employeeId);
       onSuccess();
       onClose();
     } catch (error) {
-      setError(error.message);
+      console.error('Failed to create request ', error);
+      setError('Failed to create request.');
     } finally {
       setLoading(false);
     }
@@ -67,6 +88,25 @@ const RequestForm = ({ onSuccess, onClose }) => {
           required
           className="mt-1 p-2 w-full border rounded-md"
         />
+      </div>
+
+      <div className="mb-4">
+        <label htmlFor="employee" className="block text-sm font-medium text-gray-700">
+          Employee:
+        </label>
+        <select
+          value={employeeId}
+          onChange={(e) => setEmployeeId(e.target.value)}
+          required
+          className="mt-1 p-2 w-full border rounded-md"
+        >
+          <option value="" disabled>Select an employee</option>
+          {employees.map((employee) => (
+            <option key={employee.id} value={employee.id}>
+              {employee.name}
+            </option>
+          ))}
+        </select>
       </div>
 
       <button

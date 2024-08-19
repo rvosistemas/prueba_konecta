@@ -32,28 +32,54 @@ export const getEmployeeByIdService = async (token, id) => {
 }
 
 
-export const createEmployeeService = async (token, name, hireDate, salary) => {
-  const response = await axios.post(`${API_URL}/employees`, {
-    name,
-    hire_date: hireDate,
-    salary,
-  }, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  return response.data;
+export const createEmployeeService = async (token, name, hireDate, salary, userId) => {
+  try {
+    const response = await axios.post(`${API_URL}/employees`, {
+      name,
+      hire_date: hireDate,
+      salary,
+      user_id: userId
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Failed to create employee ', error);
+    throw new Error('Failed to create employee');
+  }
 };
 
-export const updateEmployeeService = async (token, employeeId, name, hireDate, salary) => {
-  const response = await axios.put(`${API_URL}/employees/${employeeId}`, {
-    name,
-    hire_date: hireDate,
-    salary,
-  }, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  return response.data;
+export const updateEmployeeService = async (token, employeeId, name, hireDate, salary, userId) => {
+  try {
+    const response = await axios.put(`${API_URL}/employees/${employeeId}`, {
+      name,
+      hire_date: hireDate,
+      salary,
+      user_id: userId
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Failed to update employee ', error);
+    throw new Error('Failed to update employee');
+  }
 };
+
+export const deleteEmployeeService = async (token, employeeId) => {
+  try {
+    const response = await axios.delete(`${API_URL}/employees/${employeeId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Failed to delete employee ', error);
+    throw new Error('Failed to delete employee');
+  }
+}
