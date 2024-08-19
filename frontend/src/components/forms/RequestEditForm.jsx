@@ -1,9 +1,10 @@
-import { useState, useContext } from 'react';
+// RequestEditForm.jsx
+import { useState, useEffect, useContext } from 'react';
 import PropTypes from 'prop-types';
-import { createRequestService } from '../../services/requestService';
+import { getRequestByIdService, updateRequestService } from '../../services/requestService';
 import { AuthContext } from '../../contexts/AuthContext';
 
-const RequestForm = ({ onSuccess, onClose }) => {
+const RequestEditForm = ({ requestId, onSuccess, onClose }) => {
   const [code, setCode] = useState('');
   const [summary, setSummary] = useState('');
   const [description, setDescription] = useState('');
@@ -11,17 +12,37 @@ const RequestForm = ({ onSuccess, onClose }) => {
   const [loading, setLoading] = useState(false);
   const { token } = useContext(AuthContext);
 
+  useEffect(() => {
+    const fetchRequest = async () => {
+      try {
+        setLoading(true);
+        const data = await getRequestByIdService(token, requestId);
+        setCode(data.code);
+        setSummary(data.summary);
+        setDescription(data.description);
+      } catch (error) {
+        console.error('Failed to load request data ', error);
+        setError('Failed to load request data.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRequest();
+  }, [requestId, token]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
 
     try {
       setLoading(true);
-      await createRequestService(token, code, summary, description);
+      await updateRequestService(token, requestId, code, summary, description);
       onSuccess();
       onClose();
     } catch (error) {
-      setError(error.message);
+      console.error('Failed to update request ', error);
+      setError('Failed to update request.');
     } finally {
       setLoading(false);
     }
@@ -74,15 +95,16 @@ const RequestForm = ({ onSuccess, onClose }) => {
         disabled={loading}
         className={`w-full py-2 px-4 text-white rounded-md ${loading ? 'bg-gray-400' : 'bg-blue-500 hover:bg-blue-600'}`}
       >
-        {loading ? 'Creating...' : 'Create Request'}
+        {loading ? 'Updating...' : 'Update Request'}
       </button>
     </form>
   );
 };
 
-RequestForm.propTypes = {
+RequestEditForm.propTypes = {
+  requestId: PropTypes.number.isRequired,
   onSuccess: PropTypes.func.isRequired,
   onClose: PropTypes.func.isRequired,
 };
 
-export default RequestForm;
+export default RequestEditForm;

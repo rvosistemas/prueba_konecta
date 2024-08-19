@@ -1,13 +1,32 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { createEmployeeService } from '../../services/employeeService';
+import { getEmployeeByIdService, updateEmployeeService } from '../../services/employeeService';
 
-const EmployeeForm = ({ onSuccess, onClose }) => {
+const EmployeeEditForm = ({ employeeId, onSuccess, onClose }) => {
   const [name, setName] = useState('');
   const [hireDate, setHireDate] = useState('');
   const [salary, setSalary] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchEmployee = async () => {
+      try {
+        setLoading(true);
+        const data = await getEmployeeByIdService(employeeId);
+        setName(data.name);
+        setHireDate(data.hire_date);
+        setSalary(data.salary);
+      } catch (error) {
+        console.error('Failed to load employee data ', error);
+        setError('Failed to load employee data.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEmployee();
+  }, [employeeId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -15,11 +34,12 @@ const EmployeeForm = ({ onSuccess, onClose }) => {
 
     try {
       setLoading(true);
-      await createEmployeeService(name, hireDate, salary);
+      await updateEmployeeService(employeeId, name, hireDate, salary);
       onSuccess();
       onClose();
     } catch (error) {
-      setError(error.message);
+      console.error('Failed to update employee ', error);
+      setError('Failed to update employee.');
     } finally {
       setLoading(false);
     }
@@ -73,15 +93,16 @@ const EmployeeForm = ({ onSuccess, onClose }) => {
         disabled={loading}
         className={`w-full py-2 px-4 text-white rounded-md ${loading ? 'bg-gray-400' : 'bg-blue-500 hover:bg-blue-600'}`}
       >
-        {loading ? 'Creating...' : 'Create Employee'}
+        {loading ? 'Updating...' : 'Update Employee'}
       </button>
     </form>
   );
 };
 
-EmployeeForm.propTypes = {
+EmployeeEditForm.propTypes = {
+  employeeId: PropTypes.number.isRequired,
   onSuccess: PropTypes.func.isRequired,
   onClose: PropTypes.func.isRequired,
 };
 
-export default EmployeeForm;
+export default EmployeeEditForm;

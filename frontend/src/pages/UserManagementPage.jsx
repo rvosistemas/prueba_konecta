@@ -53,6 +53,11 @@ const UserManagementPage = () => {
     handleOpenModal();
   };
 
+  const handleAddUser = () => {
+    setEditingUser(null);
+    handleOpenModal();
+  };
+
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
@@ -71,15 +76,12 @@ const UserManagementPage = () => {
   return (
     <div>
       <h1 className="text-2xl font-semibold mb-4">User Management</h1>
-      <button onClick={() => setEditingUser(null)} className="bg-blue-500 text-white px-4 py-2 rounded mb-4">
+      <button onClick={handleAddUser} className="bg-blue-500 text-white px-4 py-2 rounded mb-4">
         Add User
       </button>
       <ModalWrapper isOpen={isModalOpen} onRequestClose={handleCloseModal} title={editingUser ? "Edit User" : "Create User"}>
         {editingUser ? (
-          <>
-            {console.log('Editing User ID:', editingUser)}
-            <UserEditForm userId={editingUser} token={token} onSuccess={handleUserCreated} onClose={handleCloseModal} />
-          </>
+          <UserEditForm userId={editingUser} token={token} onSuccess={handleUserCreated} onClose={handleCloseModal} />
         ) : (
           <UserForm onSuccess={handleUserCreated} onClose={handleCloseModal} />
         )}
@@ -106,5 +108,4 @@ const UserManagementPage = () => {
     </div>
   );
 };
-
 export default UserManagementPage;
