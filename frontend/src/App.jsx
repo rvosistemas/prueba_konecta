@@ -1,4 +1,3 @@
-import React from 'react';
 import { AuthProvider } from './contexts/AuthContext';
 import AppRoutes from './routes/Routes';
 import Modal from 'react-modal';

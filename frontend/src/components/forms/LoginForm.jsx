@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../contexts/AuthContext';
 
@@ -34,6 +34,7 @@ const LoginForm = () => {
       await login(email, password);
       navigate('/');
     } catch (error) {
+      console.error('Login failed ', error);
       setError('Login failed. Please check your credentials.');
     }
   };

@@ -1,9 +1,8 @@
-import React, { useEffect, useState, useContext } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { getRequestsService } from '../services/requestService';
 import { AuthContext } from '../contexts/AuthContext';
 import DataTable from '../components/DataTable';
 import Pagination from '../components/Pagination';
-import { formatDate } from '../utils/format';
 
 const RequestsPage = () => {
   const [requests, setRequests] = useState([]);

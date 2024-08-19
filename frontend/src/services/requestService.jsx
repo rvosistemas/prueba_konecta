@@ -12,6 +12,7 @@ export const getRequestsService = async (token, page = 1, limit = 10) => {
     });
     return response.data;
   } catch (error) {
+    console.error('Failed to fetch requests ', error);
     throw new Error('Failed to fetch requests');
   }
 };

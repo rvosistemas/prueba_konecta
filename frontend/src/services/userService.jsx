@@ -12,7 +12,7 @@ export const getUsersService = async (token, page = 1, limit = 10) => {
     });
     return response.data;
   } catch (error) {
-    throw new Error('Failed to fetch users');
+    throw new Error('Failed to fetch users ', error);
   }
 };
 
@@ -25,7 +25,7 @@ export const getUserByIdService = async (token, id) => {
     });
     return response.data;
   } catch (error) {
-    throw new Error('Failed to fetch user');
+    throw new Error('Failed to fetch user ', error);
   }
 }
 

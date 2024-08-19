@@ -12,6 +12,7 @@ export const getEmployeesService = async (token, page = 1, limit = 10) => {
     });
     return response.data;
   } catch (error) {
+    console.error('Failed to fetch employees ', error);
     throw new Error('Failed to fetch employees');
   }
 };

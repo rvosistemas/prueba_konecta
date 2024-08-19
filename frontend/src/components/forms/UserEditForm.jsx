@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { getUserByIdService, updateUserService } from '../../services/userService';
 
-const UserEditForm = ({ userId, token, onSuccess, onClose }) => {
+const UserEditForm = ({ userId, token, onSuccess }) => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,7 +23,8 @@ const UserEditForm = ({ userId, token, onSuccess, onClose }) => {
         setPassword(data.user.password);
         setRole(data.user.role);
       } catch (error) {
-        setError('Failed to load user data.');
+        console.error('Failed to load user data ', error);
+        setError('Failed to load user data. ');
       } finally {
         setLoading(false);
       }
@@ -41,7 +42,8 @@ const UserEditForm = ({ userId, token, onSuccess, onClose }) => {
       await updateUserService(token, userId, username, email, password, role);
       onSuccess();
     } catch (error) {
-      setError('Failed to update user.');
+      console.error('Failed to update user ', error);
+      setError('Failed to update user. ');
     } finally {
       setLoading(false);
     }
@@ -112,7 +114,6 @@ UserEditForm.propTypes = {
   userId: PropTypes.number.isRequired,
   token: PropTypes.string.isRequired,
   onSuccess: PropTypes.func.isRequired,
-  onClose: PropTypes.func.isRequired,
 };
 
 export default UserEditForm;

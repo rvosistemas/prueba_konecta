@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import { useEffect, useState, useContext, useCallback } from 'react';
 import { getUsersService } from '../services/userService';
 import { AuthContext } from '../contexts/AuthContext';
 import DataTable from '../components/DataTable';
@@ -19,7 +19,7 @@ const UserManagementPage = () => {
   const { token } = useContext(AuthContext);
   const limit = 10;
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       const data = await getUsersService(token, currentPage, limit);
@@ -31,11 +31,11 @@ const UserManagementPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token, currentPage]);
 
   useEffect(() => {
     fetchUsers();
-  }, [token, currentPage]);
+  }, [fetchUsers]);
 
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => {

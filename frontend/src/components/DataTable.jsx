@@ -1,4 +1,3 @@
-import React from 'react';
 import PropTypes from 'prop-types';
 
 const DataTable = ({ columns, data, onEdit, onDelete, showActions }) => {
