@@ -54,7 +54,7 @@ export const login = async (req, res) => {
     const { email, password } = req.body;
     const userRepository = AppDataSource.getRepository(User);
 
-    const user = await userRepository.findOneBy({ email });
+    const user = await userRepository.findOneBy({ email, isActive: true });
 
     if (!user || !(bcrypt.compare(password, user.password))) {
       return res.status(401).json({ error: 'Invalid credentials' });
@@ -75,7 +75,7 @@ export const getUserProfile = async (req, res) => {
     const userRepository = AppDataSource.getRepository(User);
 
     const user = await userRepository.findOne({
-      where: { id: req.user.id },
+      where: { id: req.user.id, isActive: true },
       select: ['id', 'username', 'email', 'role'],
     });
 

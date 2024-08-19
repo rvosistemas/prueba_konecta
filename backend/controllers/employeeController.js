@@ -27,6 +27,7 @@ export const getEmployees = async (req, res) => {
       take: limit,
       relations: ['user'],
       order: { createdAt: 'DESC' },
+      where: { isActive: true },
     });
     res.status(200).json({ employees, count });
   } catch (error) {
@@ -53,7 +54,7 @@ export const updateEmployee = async (req, res) => {
     const { id } = req.params;
     const { name, hire_date, salary } = req.body;
     const employeeRepository = AppDataSource.getRepository(Employee);
-    const employee = await employeeRepository.findOneBy({ id });
+    const employee = await employeeRepository.findOneBy({ id, isActive: true });
     if (!employee) {
       return res.status(404).json({ error: 'Employee not found' });
     }
@@ -71,7 +72,7 @@ export const deactivateEmployee = async (req, res) => {
   try {
     const { id } = req.params;
     const employeeRepository = AppDataSource.getRepository(Employee);
-    const employee = await employeeRepository.findOneBy({ id });
+    const employee = await employeeRepository.findOneBy({ id, isActive: true });
     if (!employee) {
       return res.status(404).json({ error: 'Employee not found' });
     }
@@ -87,7 +88,7 @@ export const deleteEmployee = async (req, res) => {
   try {
     const { id } = req.params;
     const employeeRepository = AppDataSource.getRepository(Employee);
-    const employee = await employeeRepository.findOneBy({ id });
+    const employee = await employeeRepository.findOneBy({ id, isActive: true });
     if (!employee) {
       return res.status(404).json({ error: 'Employee not found' });
     }

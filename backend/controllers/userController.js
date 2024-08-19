@@ -1,5 +1,6 @@
 import { AppDataSource } from '../config/database.js';
 import User from '../models/user.js';
+import { Employee } from '../models/employee.js';
 import UserRole from '../config/roles.js';
 import bcrypt from 'bcryptjs';
 
@@ -12,7 +13,30 @@ export const getUsers = async (req, res) => {
       skip: offset,
       take: limit,
       order: { createdAt: 'DESC' },
+      where: { isActive: true },
     })
+    res.status(200).json({ users, count });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+export const getAvailableUsers = async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const offset = (page - 1) * limit;
+    const userRepository = AppDataSource.getRepository(User);
+
+    const query = userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect(Employee, 'employee', 'employee.user_id = user.id')
+      .where('employee.id IS NULL AND user.isActive = true AND user.role = :role', { role: UserRole.EMPLOYEE })
+      .skip(offset)
+      .take(limit)
+      .orderBy('user.createdAt', 'DESC');
+
+    const [users, count] = await query.getManyAndCount();
+
     res.status(200).json({ users, count });
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -67,7 +91,7 @@ export const updateUser = async (req, res) => {
     const { username, email, password, role } = req.body;
 
     const userRepository = AppDataSource.getRepository(User);
-    const user = await userRepository.findOneBy({ id });
+    const user = await userRepository.findOneBy({ id, isActive: true });
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -99,7 +123,7 @@ export const deactivateUser = async (req, res) => {
     const { userId } = req.params;
 
     const userRepository = AppDataSource.getRepository(User);
-    const user = await userRepository.findOneBy({ id: userId });
+    const user = await userRepository.findOneBy({ id: userId, isActive: true });
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -118,7 +142,7 @@ export const deleteUser = async (req, res) => {
     const { id } = req.params;
 
     const userRepository = AppDataSource.getRepository(User);
-    const user = await userRepository.findOneBy({ id });
+    const user = await userRepository.findOneBy({ id, isActive: true });
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
