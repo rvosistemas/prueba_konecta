@@ -18,6 +18,18 @@ const Employee = new EntitySchema({
       type: 'float',
       nullable: false,
     },
+    user_id: {
+      type: 'int',
+      nullable: true,
+    },
+  },
+  relations: {
+    user: {
+      target: 'User',
+      type: 'one-to-one',
+      joinColumn: { name: 'user_id' },
+      cascade: true,
+    }
   },
 });
 

@@ -12,6 +12,93 @@ export const getUsersService = async (token, page = 1, limit = 10) => {
     });
     return response.data;
   } catch (error) {
-    throw new Error('Failed to fetch users');
+    throw new Error('Failed to fetch users ', error);
+  }
+};
+
+export const getAvailableUsersService = async (token) => {
+  try {
+    const response = await axios.get(`${API_URL}/users/available`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to fetch available users ', error);
+  }
+}
+
+export const getUserByIdService = async (token, id) => {
+  try {
+    const response = await axios.get(`${API_URL}/users/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to fetch user ', error);
+  }
+}
+
+export const createUserService = async (token, username, email, password, role) => {
+  try {
+    const response = await axios.post(`${API_URL}/users`, {
+      username,
+      email,
+      password,
+      role,
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw new Error(error.response.data.message || 'Registration failed');
+    } else if (error.request) {
+      throw new Error('No response from server. Please try again later.');
+    } else {
+      throw new Error('An unexpected error occurred.');
+    }
+  }
+};
+
+export const updateUserService = async (token, id, username, email, password, role) => {
+  try {
+    const response = await axios.put(`${API_URL}/users/${id}`, {
+      username,
+      email,
+      password,
+      role,
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      throw new Error(error.response.data.message || 'Edit failed');
+    } else if (error.request) {
+      throw new Error('No response from server. Please try again later.');
+    } else {
+      throw new Error('An unexpected error occurred.');
+    }
+  }
+};
+
+export const deleteUserService = async (token, id) => {
+  try {
+    const response = await axios.delete(`${API_URL}/users/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to delete user ', error);
   }
 };

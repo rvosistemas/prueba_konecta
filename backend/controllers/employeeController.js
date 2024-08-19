@@ -4,12 +4,12 @@ import { Employee } from '../models/employee.js';
 
 export const createEmployee = async (req, res) => {
   try {
-    const { name, hire_date, salary } = req.body;
+    const { name, hire_date, salary, user_id } = req.body;
 
     const parsedHireDate = parse(hire_date, 'dd/MM/yyyy', new Date());
 
     const employeeRepository = AppDataSource.getRepository(Employee);
-    const employee = employeeRepository.create({ name, hire_date: parsedHireDate, salary });
+    const employee = employeeRepository.create({ name, hire_date: parsedHireDate, salary, user_id });
     await employeeRepository.save(employee);
     res.status(201).json({ message: 'Employee created successfully', employee });
   } catch (error) {
@@ -25,7 +25,9 @@ export const getEmployees = async (req, res) => {
     const [employees, count] = await employeeRepository.findAndCount({
       skip: offset,
       take: limit,
+      relations: ['user'],
       order: { createdAt: 'DESC' },
+      where: { isActive: true },
     });
     res.status(200).json({ employees, count });
   } catch (error) {
@@ -52,7 +54,7 @@ export const updateEmployee = async (req, res) => {
     const { id } = req.params;
     const { name, hire_date, salary } = req.body;
     const employeeRepository = AppDataSource.getRepository(Employee);
-    const employee = await employeeRepository.findOneBy({ id });
+    const employee = await employeeRepository.findOneBy({ id, isActive: true });
     if (!employee) {
       return res.status(404).json({ error: 'Employee not found' });
     }
@@ -70,7 +72,7 @@ export const deactivateEmployee = async (req, res) => {
   try {
     const { id } = req.params;
     const employeeRepository = AppDataSource.getRepository(Employee);
-    const employee = await employeeRepository.findOneBy({ id });
+    const employee = await employeeRepository.findOneBy({ id, isActive: true });
     if (!employee) {
       return res.status(404).json({ error: 'Employee not found' });
     }
@@ -86,7 +88,7 @@ export const deleteEmployee = async (req, res) => {
   try {
     const { id } = req.params;
     const employeeRepository = AppDataSource.getRepository(Employee);
-    const employee = await employeeRepository.findOneBy({ id });
+    const employee = await employeeRepository.findOneBy({ id, isActive: true });
     if (!employee) {
       return res.status(404).json({ error: 'Employee not found' });
     }

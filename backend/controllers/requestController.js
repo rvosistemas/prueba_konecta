@@ -31,6 +31,7 @@ export const getRequests = async (req, res) => {
       skip: offset,
       take: limit,
       order: { createdAt: 'DESC' },
+      where: { isActive: true },
     })
     res.status(200).json({ requests, count });
   } catch (error) {
@@ -58,7 +59,7 @@ export const updateRequest = async (req, res) => {
     const { id } = req.params;
     const { code, description, summary, employee_id } = req.body;
     const requestRepository = AppDataSource.getRepository(Request);
-    const request = await requestRepository.findOneBy({ id });
+    const request = await requestRepository.findOneBy({ id, isActive: true });
     if (!request) {
       return res.status(404).json({ error: 'Request not found' });
     }
@@ -77,7 +78,7 @@ export const deactivateRequest = async (req, res) => {
   try {
     const { id } = req.params;
     const requestRepository = AppDataSource.getRepository(Request);
-    const request = await requestRepository.findOneBy({ id });
+    const request = await requestRepository.findOneBy({ id, isActive: true });
     if (!request) {
       return res.status(404).json({ error: 'Request not found' });
     }
@@ -94,7 +95,7 @@ export const deleteRequest = async (req, res) => {
   try {
     const { id } = req.params;
     const requestRepository = AppDataSource.getRepository(Request);
-    const request = await requestRepository.findOneBy({ id });
+    const request = await requestRepository.findOneBy({ id, isActive: true });
     if (!request) {
       return res.status(404).json({ error: 'Request not found' });
     }

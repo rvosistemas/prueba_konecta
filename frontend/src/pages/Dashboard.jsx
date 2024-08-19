@@ -1,9 +1,15 @@
-import React, { useContext } from 'react';
-import { Outlet, Link } from 'react-router-dom';
+import { useContext } from 'react';
+import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 
 const Dashboard = () => {
-  const { user } = useContext(AuthContext);
+  const { user, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -17,7 +23,8 @@ const Dashboard = () => {
             )}
           </div>
           <div>
-            <span>Welcome, {user?.username}</span>
+            <span>Welcome, {user?.username} </span>
+            <button onClick={handleLogout} className="ml-4 py-2 px-4 bg-red-500 rounded hover:bg-red-600">Logout</button>
           </div>
         </div>
       </nav>

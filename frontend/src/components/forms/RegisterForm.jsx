@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { registerService } from '../services/authService';
+import { registerService } from '../../services/authService';
 
 const RegisterForm = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState('');
+  const [hireDate, setHireDate] = useState('');
+  const [salary, setSalary] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -24,6 +28,11 @@ const RegisterForm = () => {
       return;
     }
 
+    if (!name) {
+      setError('Name is required.');
+      return;
+    }
+
     if (!validateEmail(email)) {
       setError('Please enter a valid email address.');
       return;
@@ -34,9 +43,24 @@ const RegisterForm = () => {
       return;
     }
 
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+
+    if (!hireDate) {
+      setError('Hire date is required.');
+      return;
+    }
+
+    if (!salary) {
+      setError('Salary is required.');
+      return;
+    }
+
     try {
       setLoading(true);
-      await registerService(username, email, password);
+      await registerService(username, email, password, name, hireDate, salary);
       navigate('/login');
     } catch (error) {
       setError(error.message);
@@ -77,6 +101,46 @@ const RegisterForm = () => {
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          required
+          className="mt-1 p-2 w-full border rounded-md"
+        />
+      </div>
+      <div className="mb-6">
+        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">Confirm Password:</label>
+        <input
+          type="password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+          className="mt-1 p-2 w-full border rounded-md"
+        />
+      </div>
+      <div className="mb-6">
+        <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name:</label>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+          className="mt-1 p-2 w-full border rounded-md"
+        />
+      </div>
+      <div className="mb-6">
+        <label htmlFor="hireDate" className="block text-sm font-medium text-gray-700">Hire Date:</label>
+        <input
+          type="date"
+          value={hireDate}
+          onChange={(e) => setHireDate(e.target.value)}
+          required
+          className="mt-1 p-2 w-full border rounded-md"
+        />
+      </div>
+      <div className="mb-6">
+        <label htmlFor="salary" className="block text-sm font-medium text-gray-700">Salary:</label>
+        <input
+          type="number"
+          value={salary}
+          onChange={(e) => setSalary(e.target.value)}
           required
           className="mt-1 p-2 w-full border rounded-md"
         />
