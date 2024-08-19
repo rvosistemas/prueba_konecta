@@ -45,7 +45,6 @@ const RequestsPage = () => {
     { label: 'Summary', field: 'summary' },
     { label: 'Description', field: 'description' },
     { label: 'Employee ID', field: 'employee_id' },
-    { label: 'Created Date', field: 'createdAt', formatter: formatDate },
   ];
 
   return (
