@@ -5,9 +5,15 @@ import bcrypt from 'bcryptjs';
 
 export const getUsers = async (req, res) => {
   try {
+    const { page = 1, limit = 10 } = req.query;
+    const offset = (page - 1) * limit;
     const userRepository = AppDataSource.getRepository(User);
-    const users = await userRepository.find({ where: { isActive: true } });
-    res.status(200).json({ users });
+    const [users, count] = await userRepository.findAndCount({
+      skip: offset,
+      take: limit,
+      order: { createdAt: 'DESC' },
+    })
+    res.status(200).json({ users, count });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

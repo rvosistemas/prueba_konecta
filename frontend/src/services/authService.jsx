@@ -17,6 +17,19 @@ export const loginService = async (email, password) => {
   }
 };
 
+export const getUserDetailsService = async (token) => {
+  try {
+    const response = await axios.get(`${API_URL}/auth/me`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to fetch user details');
+  }
+};
+
 
 export const registerService = async (username, email, password) => {
   try {
