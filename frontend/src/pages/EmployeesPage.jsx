@@ -2,26 +2,35 @@ import React, { useEffect, useState, useContext } from 'react';
 import { getEmployeesService } from '../services/employeeService';
 import { AuthContext } from '../contexts/AuthContext';
 import DataTable from '../components/DataTable';
+import Pagination from '../components/Pagination';
 import { formatSalary, formatDate, formatStatus } from '../utils/format';
 
 const EmployeesPage = () => {
   const [employees, setEmployees] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const { token, user } = useContext(AuthContext);
+  const limit = 10;
 
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const data = await getEmployeesService(token);
+        const data = await getEmployeesService(token, currentPage, limit);
         setEmployees(data.employees);
         setTotalCount(data.count);
+        setTotalPages(Math.ceil(data.count / limit));
       } catch (error) {
         console.error('Failed to fetch employees', error);
       }
     };
 
     fetchEmployees();
-  }, [token]);
+  }, [token, currentPage]);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
 
   const handleEdit = (employee) => {
     console.log('Edit', employee);
@@ -35,7 +44,7 @@ const EmployeesPage = () => {
     { label: 'Name', field: 'name' },
     { label: 'Salary', field: 'salary', formatter: formatSalary },
     { label: 'Hire Date', field: 'hire_date', formatter: formatDate },
-    { label: 'is Active', field: 'is_active', formatter: formatStatus },
+    { label: 'Status', field: 'isActive', formatter: formatStatus },
   ];
 
   return (
@@ -52,6 +61,11 @@ const EmployeesPage = () => {
         onEdit={handleEdit}
         onDelete={handleDelete}
         showActions={user?.role === 'admin'}
+      />
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
       />
       <p className="mt-4">Total Employees: {totalCount}</p>
     </div>

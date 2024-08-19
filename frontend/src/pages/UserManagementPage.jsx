@@ -2,27 +2,35 @@ import React, { useEffect, useState, useContext } from 'react';
 import { getUsersService } from '../services/userService';
 import { AuthContext } from '../contexts/AuthContext';
 import DataTable from '../components/DataTable';
+import Pagination from '../components/Pagination';
 import { formatStatus } from '../utils/format';
-
 
 const UserManagementPage = () => {
   const [users, setUsers] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const { token } = useContext(AuthContext);
+  const limit = 10;
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const data = await getUsersService(token);
+        const data = await getUsersService(token, currentPage, limit);
         setUsers(data.users);
         setTotalCount(data.count);
+        setTotalPages(Math.ceil(data.count / limit));
       } catch (error) {
         console.error('Failed to fetch users', error);
       }
     };
 
     fetchUsers();
-  }, [token]);
+  }, [token, currentPage]);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
 
   const handleEdit = (user) => {
     console.log('Edit', user);
@@ -36,7 +44,7 @@ const UserManagementPage = () => {
     { label: 'Username', field: 'username' },
     { label: 'Email', field: 'email' },
     { label: 'Role', field: 'role' },
-    { label: 'isActive', field: 'isActive', formatter: formatStatus },
+    { label: 'Status', field: 'isActive', formatter: formatStatus },
   ];
 
   return (
@@ -51,6 +59,11 @@ const UserManagementPage = () => {
         onEdit={handleEdit}
         onDelete={handleDelete}
         showActions={true}
+      />
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
       />
       <p className="mt-4">Total Users: {totalCount}</p>
     </div>
