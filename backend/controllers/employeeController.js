@@ -25,6 +25,7 @@ export const getEmployees = async (req, res) => {
     const [employees, count] = await employeeRepository.findAndCount({
       skip: offset,
       take: limit,
+      relations: ['user'],
       order: { createdAt: 'DESC' },
     });
     res.status(200).json({ employees, count });

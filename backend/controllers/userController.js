@@ -19,6 +19,34 @@ export const getUsers = async (req, res) => {
   }
 };
 
+export const createUser = async (req, res) => {
+  try {
+    const { username, email, password, role } = req.body;
+    const userRepository = AppDataSource.getRepository(User);
+    const existingUserByUsername = await userRepository.findOne({ where: { username } });
+    if (existingUserByUsername) {
+      return res.status(400).json({ error: 'Username already exists' });
+    }
+
+    const existingUserByEmail = await userRepository.findOne({ where: { email } });
+    if (existingUserByEmail) {
+      return res.status(400).json({ error: 'Email already exists' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = userRepository.create({
+      username,
+      email,
+      password: hashedPassword,
+      role: role || UserRole.EMPLOYEE,
+    });
+    await userRepository.save(user);
+    res.status(201).json({ message: 'User created successfully', user });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+}
+
 export const getUser = async (req, res) => {
   try {
     const { id } = req.params;

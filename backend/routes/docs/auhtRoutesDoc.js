@@ -19,6 +19,15 @@
  *                 type: string
  *               password:
  *                 type: string
+ *               name:
+ *                 type: string
+ *               hire_date:
+ *                 type: string
+ *                 format: date
+ *                 example: "01/01/2020"
+ *               salary:
+ *                 type: number
+ *                 format: float
  *     responses:
  *       201:
  *         description: User registered successfully

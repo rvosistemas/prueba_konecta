@@ -31,12 +31,15 @@ export const getUserDetailsService = async (token) => {
 };
 
 
-export const registerService = async (username, email, password) => {
+export const registerService = async (username, email, password, name, hireDate, salary) => {
   try {
     const response = await axios.post(`${API_URL}/auth/register`, {
       username,
       email,
       password,
+      name,
+      hire_date: hireDate,
+      salary,
     });
     return response.data;
   } catch (error) {

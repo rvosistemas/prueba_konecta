@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.get('/', authenticate, authorize([UserRole.EMPLOYEE, UserRole.ADMIN]), getRequests);
 router.get('/:id', authenticate, authorize([UserRole.EMPLOYEE, UserRole.ADMIN]), getRequest);
-router.post('/', authenticate, authorize([UserRole.ADMIN]), createRequest);
+router.post('/', authenticate, authorize([UserRole.EMPLOYEE, UserRole.ADMIN]), createRequest);
 router.put('/:id', authenticate, authorize([UserRole.ADMIN]), updateRequest);
 router.delete('/:id', authenticate, authorize([UserRole.ADMIN]), deactivateRequest);
 

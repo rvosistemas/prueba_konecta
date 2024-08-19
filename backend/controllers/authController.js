@@ -2,13 +2,15 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { AppDataSource } from '../config/database.js';
 import User from '../models/user.js';
+import { Employee } from '../models/employee.js';
 import UserRole from '../config/roles.js';
 
 export const register = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password, name, hire_date, salary } = req.body;
 
     const userRepository = AppDataSource.getRepository(User);
+    const employeeRepository = AppDataSource.getRepository(Employee);
 
     const existingUserByUsername = await userRepository.findOne({ where: { username } });
     if (existingUserByUsername) {
@@ -31,6 +33,16 @@ export const register = async (req, res) => {
 
     await userRepository.save(user);
 
+    if (role === UserRole.EMPLOYEE) {
+      const parsedHireDate = parse(hire_date, 'dd/MM/yyyy', new Date());
+      const employee = employeeRepository.create({
+        name,
+        hire_date: parsedHireDate,
+        salary,
+        user: user,
+      });
+      await employeeRepository.save(employee);
+    }
     res.status(201).json({ message: 'User registered successfully', user });
   } catch (error) {
     res.status(400).json({ error: error.message });

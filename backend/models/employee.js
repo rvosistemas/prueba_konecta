@@ -19,6 +19,14 @@ const Employee = new EntitySchema({
       nullable: false,
     },
   },
+  relations: {
+    user: {
+      target: 'User',
+      type: 'one-to-one',
+      joinColumn: { name: 'user_id' },
+      cascade: true,
+    }
+  },
 });
 
 export { Employee };
