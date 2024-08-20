@@ -4,6 +4,8 @@ import { AppDataSource } from '../config/database.js';
 import User from '../models/user.js';
 import { Employee } from '../models/employee.js';
 import UserRole from '../config/roles.js';
+import { parse } from 'date-fns';
+
 
 export const register = async (req, res) => {
   try {
@@ -33,16 +35,15 @@ export const register = async (req, res) => {
 
     await userRepository.save(user);
 
-    if (role === UserRole.EMPLOYEE) {
-      const parsedHireDate = parse(hire_date, 'dd/MM/yyyy', new Date());
-      const employee = employeeRepository.create({
-        name,
-        hire_date: parsedHireDate,
-        salary,
-        user: user,
-      });
-      await employeeRepository.save(employee);
-    }
+    const parsedHireDate = parse(hire_date, 'dd/MM/yyyy', new Date());
+    const employee = employeeRepository.create({
+      name,
+      hire_date: parsedHireDate,
+      salary,
+      user: user,
+    });
+    await employeeRepository.save(employee);
+
     res.status(201).json({ message: 'User registered successfully', user });
   } catch (error) {
     res.status(400).json({ error: error.message });

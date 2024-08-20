@@ -142,7 +142,7 @@ describe('Request Controller', () => {
 
       await updateRequest(req, res);
 
-      expect(requestRepository.findOneBy).toHaveBeenCalledWith({ id: 1 });
+      expect(requestRepository.findOneBy).toHaveBeenCalledWith({ id: 1, isActive: true });
       expect(requestRepository.save).toHaveBeenCalledWith({
         ...requestMock,
         code: 'REQ001',
