@@ -1,0 +1,38 @@
+name: Frontend Tests
+
+on:
+  pull_request:
+    paths:
+      - 'frontend/**'
+    branches:
+      - main
+      - dev
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18.x'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Run tests with coverage
+      run: npm run test -- --coverage
+
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v3
+      with:
+        name: frontend-coverage-report
+        path: ./coverage
