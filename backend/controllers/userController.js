@@ -137,6 +137,7 @@ export const deactivateUser = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
+
 export const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;

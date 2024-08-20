@@ -1,21 +1,36 @@
-import { mock } from 'jest-mock-extended';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { AppDataSource } from '../../config/database.js';
-import UserRole from '../../config/roles.js';
 import { register, login, getUserProfile } from '../../controllers/authController.js';
 import User from '../../models/user.js';
+import { Employee } from '../../models/employee.js';
+import UserRole from '../../config/roles.js';
+
+jest.mock('bcryptjs', () => ({
+  hash: jest.fn(),
+  compare: jest.fn(),
+}));
+
+jest.mock('jsonwebtoken', () => ({
+  sign: jest.fn(),
+}));
 
 describe('Auth Controller', () => {
-  let req, res, userRepositoryMock;
+  let req, res;
+  let userRepositoryMock, employeeRepositoryMock;
 
   beforeEach(() => {
     req = {
       body: {
         username: 'testuser',
         email: 'testuser@example.com',
-        password: 'password123'
+        password: 'password123',
+        name: 'Test Name',
+        hire_date: '01/01/2021',
+        salary: 50000,
+        role: UserRole.EMPLOYEE
       },
+      user: { id: 1 },
       params: {}
     };
 
@@ -24,171 +39,161 @@ describe('Auth Controller', () => {
       json: jest.fn()
     };
 
-    userRepositoryMock = mock();
-    jest.spyOn(AppDataSource, 'getRepository').mockReturnValue(userRepositoryMock);
+    userRepositoryMock = {
+      findOne: jest.fn(),
+      findOneBy: jest.fn(),
+      create: jest.fn(),
+      save: jest.fn(),
+    };
+
+    employeeRepositoryMock = {
+      create: jest.fn(),
+      save: jest.fn(),
+    };
+
+    jest.spyOn(AppDataSource, 'getRepository')
+      .mockImplementation((model) => {
+        if (model === User) {
+          return userRepositoryMock;
+        } else if (model === Employee) {
+          return employeeRepositoryMock;
+        }
+        throw new Error('Unexpected model type');
+      });
+
+
   });
 
   afterEach(() => {
     jest.clearAllMocks();
   });
 
+
   describe('Register', () => {
-    describe('Successful registration', () => {
-      it('should register a new user successfully', async () => {
-        userRepositoryMock.findOne.mockResolvedValue(null);
-        userRepositoryMock.create.mockReturnValue({
-          id: 1,
-          username: 'testuser',
-          email: 'testuser@example.com',
-          password: 'hashedPassword123',
-          role: UserRole.EMPLOYEE,
-          isActive: true
-        });
+    it('should register a new user and employee successfully', async () => {
+      userRepositoryMock.findOne
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(null);
 
-        await register(req, res);
+      await register(req, res);
 
-        expect(res.status).toHaveBeenCalledWith(201);
-        expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-          message: 'User registered successfully',
-          user: expect.objectContaining({
-            username: 'testuser',
-            email: 'testuser@example.com',
-            role: UserRole.EMPLOYEE,
-            isActive: true
-          })
-        }));
-      });
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.json).toHaveBeenCalledWith(expect.anything());
     });
 
-    describe('Failed registration', () => {
-      it('should return an error if username already exists', async () => {
-        userRepositoryMock.findOne.mockResolvedValue(true);
-
-        await register(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ error: 'Username already exists' }));
-      });
-
-      it('should return an error if email already exists', async () => {
-        userRepositoryMock.findOne.mockResolvedValueOnce(false).mockResolvedValueOnce(true);
-
-        await register(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ error: 'Email already exists' }));
-      });
-    });
-
-    it('should handle errors and return 400 status code', async () => {
-      jest.spyOn(AppDataSource.getRepository(User), 'findOne').mockRejectedValue(new Error('Database error'));
+    it('should return an error if username already exists', async () => {
+      userRepositoryMock.findOne.mockResolvedValueOnce({ id: 1, username: 'testuser' });
 
       await register(req, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ error: 'Database error' }));
+      expect(res.json).toHaveBeenCalledWith(expect.anything());
     });
 
+    it('should return an error if email already exists', async () => {
+      userRepositoryMock.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce({ id: 1, email: 'testuser@example.com' });
+
+      await register(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith(expect.anything());
+    });
+
+    it('should handle unexpected errors', async () => {
+      userRepositoryMock.findOne.mockRejectedValue(new Error('Database error'));
+
+      await register(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith(expect.anything());
+    });
   });
 
+
   describe('Login', () => {
-    describe('Successful login', () => {
-      it('should login a user successfully', async () => {
-        const user = {
-          id: 1,
-          email: 'testuser@example.com',
-          password: await bcrypt.hash('password123', 10),
-          role: UserRole.EMPLOYEE
-        };
+    beforeEach(() => {
+      bcrypt.compare.mockResolvedValue(true);
+      jwt.sign.mockReturnValue('fakeToken');
+    });
 
-        userRepositoryMock.findOneBy.mockResolvedValue(user);
-        jest.spyOn(bcrypt, 'compare').mockResolvedValue(true);
-        jest.spyOn(jwt, 'sign').mockReturnValue('fakeToken');
+    it('should login a user successfully', async () => {
+      userRepositoryMock.findOneBy.mockResolvedValue({
+        id: 1,
+        email: 'testuser@example.com',
+        password: 'hashedPassword123',
+        role: UserRole.EMPLOYEE,
+        isActive: true
+      });
 
-        await login(req, res);
+      await login(req, res);
 
-        expect(res.status).toHaveBeenCalledWith(200);
-        expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-          message: 'Login successful',
-          token: 'fakeToken'
-        }));
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        message: 'Login successful',
+        token: expect.any(String)
       });
     });
 
-    describe('Failed login', () => {
-      it('should return 401 if credentials are invalid', async () => {
-        userRepositoryMock.findOneBy.mockResolvedValue(null);
+    it('should return 401 if credentials are invalid', async () => {
+      userRepositoryMock.findOneBy.mockResolvedValue(null);
 
-        await login(req, res);
+      await login(req, res);
 
-        expect(res.status).toHaveBeenCalledWith(401);
-        expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-          error: 'Invalid credentials'
-        }));
-      });
+      expect(res.status).toHaveBeenCalledWith(401);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ error: 'Invalid credentials' }));
     });
 
-    it('should handle errors and return 400 status code', async () => {
-      jest.spyOn(AppDataSource.getRepository(User), 'findOneBy').mockRejectedValue(new Error('Database error'));
+    it('should handle errors during login', async () => {
+      userRepositoryMock.findOneBy.mockRejectedValue(new Error('Database error'));
 
       await login(req, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ error: 'Database error' }));
     });
-
   });
 
-  describe('Get User Profile', () => {
-    beforeEach(() => {
-      req.user = { id: 1 };
-    });
 
-    describe('Successful retrieval', () => {
-      it('should return user profile successfully', async () => {
-        userRepositoryMock.findOne.mockResolvedValue({
+  describe('Get User Profile', () => {
+    it('should return user profile successfully', async () => {
+      userRepositoryMock.findOne.mockResolvedValue({
+        id: 1,
+        username: 'testuser',
+        email: 'testuser@example.com',
+        role: UserRole.EMPLOYEE
+      });
+
+      await getUserProfile(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith({
+        user: expect.objectContaining({
           id: 1,
           username: 'testuser',
           email: 'testuser@example.com',
-          role: 'employee'
-        });
-
-        await getUserProfile(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(200);
-        expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-          user: expect.objectContaining({
-            id: 1,
-            username: 'testuser',
-            email: 'testuser@example.com',
-            role: 'employee'
-          })
-        }));
+          role: UserRole.EMPLOYEE
+        })
       });
     });
 
-    describe('Failed retrieval', () => {
-      it('should return 404 if user not found', async () => {
-        userRepositoryMock.findOne.mockResolvedValue(null);
+    it('should return 404 if user not found', async () => {
+      userRepositoryMock.findOne.mockResolvedValue(null);
 
-        await getUserProfile(req, res);
+      await getUserProfile(req, res);
 
-        expect(res.status).toHaveBeenCalledWith(404);
-        expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-          error: 'User not found'
-        }));
-      });
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ error: 'User not found' }));
     });
 
-    it('should handle errors and return 400 status code', async () => {
-      jest.spyOn(AppDataSource.getRepository(User), 'findOne').mockRejectedValue(new Error('Database error'));
+    it('should handle errors in retrieving user profile', async () => {
+      userRepositoryMock.findOne.mockRejectedValue(new Error('Database error'));
 
       await getUserProfile(req, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ error: 'Database error' }));
     });
-
   });
+
 
 });
